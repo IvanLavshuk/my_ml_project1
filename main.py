@@ -6,8 +6,6 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 # Загрузка данных
 df = pd.read_csv("train.csv")
 
-# Просмотр первых строк
-print(df.head())
 
 # Проверка пропущенных значений
 print(df.isnull().sum())
