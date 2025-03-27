@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder
-# Загрузка данных
-df = pd.read_csv("train.csv")
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder, OneHotEncoder
 
-#Данные из Dataset
+df = pd.read_csv("train.csv")
 print("Первые 20 строк датасета:")
 print(df.head(20))
 print("\nИнформация о датасете:")
@@ -17,77 +13,68 @@ print(df.dtypes)
 print("\nНазвания столбцов:")
 print(df.columns.tolist())
 
-#3 Количество пропущенных значений для каждого столбца в Datasets
-nan_matrix = df.isnull()
-missing_values_count = nan_matrix.sum()
-print("Количество пропущенных значений в каждом столбце:")
-print(missing_values_count)
-
-# 4. Заполнение пропущенных значений
-# Определение числовых и категориальных столбцов
-num_cols = ["Age", "Fare"]  # Числовые столбцы
-cat_cols = ["Cabin", "Embarked"]  # Категориальные столбцы
-# Заполнение пропущенных значений в числовых столбцах медианой
-df[num_cols] = df[num_cols].fillna(df[num_cols].median())
-# Заполнение пропущенных значений в категориальных столбцах модой
-for col in cat_cols:
-    df[col] = df[col].fillna(df[col].mode()[0])
-# Проверка, что пропущенные значения заполнены
-print("\nКоличество пропущенных значений после заполнения:")
-print(df.isnull().sum())
-
-# 5. Нормализация данных
-# Минимально-максимальное масштабирование для числовых столбцов
-scaler = MinMaxScaler()
-df['Age'] = scaler.fit_transform(df[['Age']])
-df['Fare'] = scaler.fit_transform(df[['Fare']])
-
-print("\nДанные после нормализации:")
-print(df[['Age', 'Fare']].head())
-
-# 6. Преобразование категориальных данных
-# One-Hot Encoding для категориальных столбцов
-df = pd.get_dummies(df, columns=['Sex', 'Embarked'], drop_first=True)
-le = LabelEncoder()
-df['Cabin'] = le.fit_transform(df['Cabin'])
-
-
-# 7. Удаление столбцов
-# Удаление столбца 'Name'
-df_without_name = df.drop('Name', axis='columns')
-print("\nДанные после удаления столбца 'Name':")
-print(df_without_name.head())
-
-# Удаление столбцов 'Age' и 'Fare'
-df_without_age_and_fare = df.drop(['Age', 'Fare'], axis='columns')
-print("\nДанные после удаления столбцов 'Age' и 'Fare':")
-print(df_without_age_and_fare.head())
-
-# 8. Выбор столбцов по типу данных
-# Выбор только числовых столбцов
-numeric_df = df.select_dtypes(include='number')
-print("\nЧисловые столбцы:")
-print(numeric_df.head())
-
-# Выбор нечисловых столбцов
-not_numeric_df = df.select_dtypes(exclude='number')
-print("\nНечисловые столбцы:")
-print(not_numeric_df.head())
-
-# 9. Добавление новых столбцов
-# Пример добавления нового столбца 'VIP' (предположим, что у нас есть данные в df1)
-# df['VIP'] = df1['VIP_Status']
-
-# Пример добавления двух новых столбцов 'Deck' и 'Side' (предположим, что у нас есть данные в df2)
-# df[['Deck', 'Side']] = df2[['CabinDeck', 'CabinSide']]
-
-# 10. Разделение данных на обучающую и тестовую выборки
-train_df, test_df = train_test_split(df, test_size=0.3, random_state=42)
+train_df, test_df = train_test_split(df, test_size = 0.3, random_state = 42)
 print("\nРазмер обучающей выборки:", train_df.shape)
 print("Размер тестовой выборки:", test_df.shape)
 
-# 11. Сохранение обработанных данных
-train_df.to_csv("train_titanic.csv", index=False)
-test_df.to_csv("test_titanic.csv", index=False)
 
-print("\nОбработанные данные сохранены в файлы 'train_titanic.csv' и 'test_titanic.csv'.")
+nan_matrix_test = test_df.isnull()
+nan_matrix = train_df.isnull()
+missing_values_count = nan_matrix.sum()
+missing_values_count_test = nan_matrix_test.sum()
+print("Количество пропущенных значений в каждом столбце:")
+print(missing_values_count)
+print(missing_values_count_test)
+train_df["Age"] = train_df["Age"].fillna(train_df["Age"].median())
+test_df["Age"] = test_df["Age"].fillna(test_df["Age"].median())
+
+cat_cols = ["Cabin", "Embarked"]
+for col in cat_cols:
+    train_df[col] = train_df[col].fillna(train_df[col].mode()[0])
+    test_df[col] = test_df[col].fillna(test_df[col].mode()[0])
+print("\nКоличество пропущенных значений после заполнения:")
+print(train_df.isnull().sum())
+print(test_df.isnull().sum())
+# Нормализация данных
+# Минимально-максимальное масштабирование для числовых столбцов
+scaler = MinMaxScaler()
+train_df['Age'] = scaler.fit_transform(train_df[['Age']])
+train_df['Fare'] = scaler.fit_transform(train_df[['Fare']])
+test_df['Age'] = scaler.fit_transform(test_df[['Age']])
+test_df['Fare'] = scaler.fit_transform(test_df[['Fare']])
+print("\nДанные после нормализации:")
+print(train_df[['Age', 'Fare']].head())
+
+
+# Преобразование категориальных данных
+train_df = pd.get_dummies(train_df, columns=['Embarked'], drop_first=True)
+test_df = pd.get_dummies(test_df, columns=['Embarked'], drop_first=True)
+le = LabelEncoder()
+train_df['Sex'] = le.fit_transform(train_df['Sex'])
+train_df['Cabin'] = train_df['Cabin'].fillna('Unknown').str[0]
+test_df['Sex'] = le.fit_transform(test_df['Sex'])
+test_df['Cabin'] = test_df['Cabin'].fillna('Unknown').str[0]
+pd.set_option("display.max_columns",None)
+print(train_df.head(20));
+train_df= pd.get_dummies(train_df, columns=['Cabin'], drop_first=True)
+test_df= pd.get_dummies(test_df, columns=['Cabin'], drop_first=True)
+train_df = train_df.drop('Name', axis='columns')
+train_df = train_df.drop('Ticket', axis='columns')
+test_df = test_df.drop('Name', axis='columns')
+test_df = test_df.drop('Ticket', axis='columns')
+#df_without_age_and_fare = df.drop(['Age', 'Fare'], axis='columns')
+#print("\nДанные после удаления столбцов 'Age' и 'Fare':")
+#print(df_without_age_and_fare.head())
+# numeric_df = df.select_dtypes(include='number')
+# print("\nЧисловые столбцы:")
+# print(numeric_df.head())
+# not_numeric_df = df.select_dtypes(exclude='number')
+# print("\nНечисловые столбцы:")
+# print(not_numeric_df.head())
+
+pd.set_option("display.max_columns",None)
+print(train_df.head(20));
+print(test_df.head(20));
+train_df.to_csv("train_titanic.csv", index=False)
+test_df.to_csv("train_titanic.csv", index=False)
+print("\nОбработанные данные сохранены в файл 'train_titanic.csv'.")
